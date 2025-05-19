@@ -14,6 +14,8 @@ const Game = () => {
     computer: Choice;
     result: string;
   }>>([]);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
 
   const choices: Choice[] = ['rock', 'paper', 'scissors'];
 
@@ -23,17 +25,26 @@ const Game = () => {
   };
 
   const determineWinner = (player: Choice, computer: Choice): string => {
-    if (player === computer) return 'Tie!';
+    if (player === computer) {
+      setStreak(0);
+      return 'Tie! 🤝';
+    }
     
     if (
       (player === 'rock' && computer === 'scissors') ||
       (player === 'paper' && computer === 'rock') ||
       (player === 'scissors' && computer === 'paper')
     ) {
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      if (newStreak > bestStreak) {
+        setBestStreak(newStreak);
+      }
       setScore(prev => ({ ...prev, player: prev.player + 1 }));
       return 'You win! 🎉';
     }
     
+    setStreak(0);
     setScore(prev => ({ ...prev, computer: prev.computer + 1 }));
     return 'Computer wins! 🤖';
   };
@@ -67,6 +78,7 @@ const Game = () => {
     setResult('');
     setScore({ player: 0, computer: 0 });
     setGameHistory([]);
+    setStreak(0);
   };
 
   const getEmoji = (choice: Choice) => {
@@ -79,12 +91,34 @@ const Game = () => {
 
   return (
     <div className="game-container">
-      <h1>Rock Paper Scissors</h1>
+      <div className="game-header">
+        <h1>Rock Paper Scissors</h1>
+        <p className="subtitle">Challenge the computer in this classic game!</p>
+      </div>
       
-      <div className="score-board">
-        <div className="score">
-          <h2>Player: {score.player}</h2>
-          <h2>Computer: {score.computer}</h2>
+      <div className="stats-container">
+        <div className="score-board">
+          <div className="score">
+            <div className="score-item">
+              <h2>Player</h2>
+              <span className="score-value">{score.player}</span>
+            </div>
+            <div className="score-item">
+              <h2>Computer</h2>
+              <span className="score-value">{score.computer}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="streak-container">
+          <div className="streak">
+            <span className="streak-label">Current Streak</span>
+            <span className="streak-value">{streak}</span>
+          </div>
+          <div className="best-streak">
+            <span className="streak-label">Best Streak</span>
+            <span className="streak-value">{bestStreak}</span>
+          </div>
         </div>
       </div>
 
@@ -113,7 +147,10 @@ const Game = () => {
             )}
           </div>
           
-          <div className="vs">VS</div>
+          <div className="vs">
+            <span className="vs-text">VS</span>
+            {isAnimating && <div className="thinking">Computer is thinking...</div>}
+          </div>
           
           <div className="computer-choice">
             {computerChoice && (
@@ -128,18 +165,27 @@ const Game = () => {
         {result && (
           <div className={`result ${result.includes('win') ? 'win' : result.includes('Tie') ? 'tie' : 'lose'}`}>
             <h3>{result}</h3>
+            {streak > 1 && (
+              <div className="streak-message">
+                🔥 {streak} wins in a row! Keep it up! 🔥
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {gameHistory.length > 0 && (
         <div className="game-history">
-          <h3>Game History</h3>
+          <h3>Recent Games</h3>
           <div className="history-list">
             {gameHistory.slice(-5).map((game, index) => (
               <div key={index} className="history-item">
-                <span>{getEmoji(game.player)} vs {getEmoji(game.computer)}</span>
-                <span className="history-result">{game.result}</span>
+                <span className="history-choices">
+                  {getEmoji(game.player)} vs {getEmoji(game.computer)}
+                </span>
+                <span className={`history-result ${game.result.includes('win') ? 'win' : game.result.includes('Tie') ? 'tie' : 'lose'}`}>
+                  {game.result}
+                </span>
               </div>
             ))}
           </div>
